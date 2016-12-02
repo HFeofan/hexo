@@ -9,11 +9,13 @@ tags:
 
 # 授权
 
-    UNUserNotificationCenter.current().requestAuthorization(options: [.sound, .badge, .alert]) { (granted, error) in
-        if granted {
-            UIApplication.shared.registerForRemoteNotifications()
-        } else if let e = error {
-            print(e.localizedDescription)
-        }
+``` swift
+UNUserNotificationCenter.current().requestAuthorization(options: [.sound, .badge, .alert]) { (granted, error) in
+    if granted {
+        UIApplication.shared.registerForRemoteNotifications()
+    } else if let e = error {
+        print(e.localizedDescription)
     }
+}
+```
 
