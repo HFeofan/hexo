@@ -23,14 +23,14 @@ NSTimeInterval durantion = 0.3;
 
 在runloop中没有input source或者timers，这个方法会立即返回。否则会重复使用`NSDefaultRunLoopMode`模式调用`runMode:beforeDate:`直到指定时间。
 
-另外，如果手动把input source或者timers从runloop中移除，并不会导致runloop退出。系统可能会根据需要添加或移除input source到runloop，这些操作可能导致runloop不会退出。
+另外，如果手动把input sources或者timers从runloop中移除，并不会导致runloop退出。系统可能会根据需要添加或移除input source到runloop，这些操作可能导致runloop不会退出。
 
 ## runMode:beforeDate:
 
 如果runloop启动并处理inputsource一次然后阻塞到指定时间就会返回`YES`，否则，如果runloop没有启动返回`NO`。
 
 只是看这两个方法的解释感觉看不出啥，所以需要先了解下Runloop是什么东西。
-
+<!--more-->
 # Runloop的内部结构
 
 可以从 https://opensource.apple.com/tarballs/CF/ 这里下载CF代码来看。Runloop的主要结构如下：
@@ -47,7 +47,7 @@ Runloop其实就是线程里的一个循环。它从两个地方获取事件，I
 
 ## Run Loop Mode
 
-Runloop Mode是需要被监控的input sources和timer的集合，并且在Runloop状态改变时通知观察者。Runloop只有当前mode中的sources允许发送事件，observers也是一样。而其他mode中的sources发送的事件会被阻塞，等到runloop以其mode运行。
+Runloop Mode是需要被监控的input sources和timers的集合，并且在Runloop状态改变时通知观察者。Runloop只接受当前mode中的sources发出的事件，并对当前mode中的observes通知。而其他mode中的sources发送的事件会被阻塞，等到runloop以其mode运行。
 
 在官方文档中列出了以下mode：
 
@@ -83,7 +83,7 @@ NSObject的perform selector方法：
 - `performSelectorOnMainThread:withObject:waitUntilDone:`
 - `performSelectorOnMainThread:withObject:waitUntilDone:modes:`
 
-在主线程的下一个runloop循环中执行selector。wait的作用，是否阻塞当前线程知道slector被执行。YES时阻塞改线程，NO时持有selector并立即返回。
+在主线程的下一个runloop循环中执行selector。wait的作用，是否阻塞当前线程直到slector被执行。YES时阻塞该线程，NO时持有selector并立即返回。
 
 - `performSelector:onThread:withObject:waitUntilDone:`
 - `performSelector:onThread:withObject:waitUntilDone:modes:`
@@ -100,9 +100,9 @@ delay一段时间并在线程的下一次runloop循环中执行，因为需要�
 如果通过`performSelector:withObject:afterDelay:`和`performSelector:withObject:afterDelay:inModes:`执行的selector可以通过这两个方法取消。
 
 
-## Timer Source
+## Timer Sources
 
-Timer用来执行一些定时任务，虽然它会生成一个time-based的通知，但它并不是一个实时的。timer在被注册后会自动根据注册的时间间隔设定事件，如果中间因为某些原因导致事件的执行被延迟，那么这个事件会被跳过。Tiemr有这个`tolerance`宽容度属性，可以接受一定的延迟，默认值为0。
+Timer用来执行一些定时任务，虽然它会生成一个time-based的通知，但它并不是一个实时的。timer在被注册后会自动根据注册的时间间隔设定事件，如果中间因为某些原因导致事件的执行被延迟，那么这个事件会被跳过。Tiemr有个`tolerance`宽容度属性，可以接受一定的延迟，默认值为0。
 
 如果runloop没有运行，那么timer也不会激活。
 
@@ -241,11 +241,13 @@ Runloop的初始结构
 # 动画与runloop的关系？
 
 从上边的runloop初始结构中可以看到有一个observe的回调为`_ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv`，这个是Core Animation注册的observe，用于将UI的中间态提交到GPU，如果有动画，Core Animation会通过DisplayLink机制重复相关流程。
-所以，如果在动画代码的下边有一些会占用CPU的任务，这时候动画就会被阻塞。可以通过`runUntilDate`方法驱动runloop完成动画显示。
+所以，如果在动画代码的下边有一些会占用CPU的任务，导致当前runloop不能到退出或者唤醒状态，这时候动画就会被阻塞。可以通过`runUntilDate`方法驱动runloop完成动画显示。
 
-<br/>
-参考资料：
+具体的渲染过程可以看下面的参考链接。
+
+# 参考资料：
 1, [官方资料](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Multithreading/RunLoopManagement/RunLoopManagement.html#//apple_ref/doc/uid/10000057i-CH16-SW1)
 2, [走进Runloop的世界](http://chun.tips/blog/2014/10/20/zou-jin-run-loopde-shi-jie-%5B%3F%5D-:shi-yao-shi-run-loop%3F/)
 3, [深入理解Runloop](http://blog.ibireme.com/2015/05/18/runloop/)
 4, [iOS 保持界面流畅的技巧](http://blog.ibireme.com/2015/11/12/smooth_user_interfaces_for_ios/)
+5, [iOS 事件处理机制与图像渲染过程](http://mp.weixin.qq.com/s?__biz=MzAwNDY1ODY2OQ==&mid=400417748&idx=1&sn=0c5f6747dd192c5a0eea32bb4650c160&scene=4#wechat_redirect)
