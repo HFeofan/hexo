@@ -247,7 +247,7 @@ Runloop的初始结构
 
 具体的渲染过程可以看下面的参考链接。
 
-# 参考资料：
+# 参考资料
 1, [官方资料](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/Multithreading/RunLoopManagement/RunLoopManagement.html#//apple_ref/doc/uid/10000057i-CH16-SW1)
 2, [走进Runloop的世界](http://chun.tips/blog/2014/10/20/zou-jin-run-loopde-shi-jie-%5B%3F%5D-:shi-yao-shi-run-loop%3F/)
 3, [深入理解Runloop](http://blog.ibireme.com/2015/05/18/runloop/)
