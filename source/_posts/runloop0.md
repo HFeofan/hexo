@@ -30,7 +30,9 @@ NSTimeInterval durantion = 0.3;
 如果runloop启动并处理inputsource一次然后阻塞到指定时间就会返回`YES`，否则，如果runloop没有启动返回`NO`。
 
 只是看这两个方法的解释感觉看不出啥，所以需要先了解下Runloop是什么东西。
+
 <!--more-->
+
 # Runloop的内部结构
 
 可以从 https://opensource.apple.com/tarballs/CF/ 这里下载CF代码来看。Runloop的主要结构如下：
