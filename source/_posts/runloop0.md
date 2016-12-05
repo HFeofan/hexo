@@ -73,6 +73,8 @@ Input sources分为port-based sources和custom sources，但是对于runloop来�
 
 ### Custom Sources
 
+通过`CFRunLoopSourceRef`类型创建一个custom input source，并自定义相关的事件处理和传递机制。
+
 ### Perform Selector Sources
 
 Cocoa定义了一个custom input source，这样可以在任何线程执行一个selector。selector的执行在目标线程是线性的，减少了同步问题。在selector执行完之后，相应的source会被移除。如果目标线程没有一个活动的runloop，那么selector不会执行，这点需要注意下。
@@ -81,158 +83,165 @@ NSObject的perform selector方法：
 - `performSelectorOnMainThread:withObject:waitUntilDone:`
 - `performSelectorOnMainThread:withObject:waitUntilDone:modes:`
 
+在主线程的下一个runloop循环中执行selector。wait的作用，是否阻塞当前线程知道slector被执行。YES时阻塞改线程，NO时持有selector并立即返回。
+
+- `performSelector:onThread:withObject:waitUntilDone:`
+- `performSelector:onThread:withObject:waitUntilDone:modes:`
+同上，可以指定任意已有的线程。
+
+- `performSelector:withObject:afterDelay:`
+- `performSelector:withObject:afterDelay:inModes:`
+
+delay一段时间并在线程的下一次runloop循环中执行，因为需要等到下次循环，所以会自动有一个很小的delay时间。selector会被保存到一个队列里，并依次执行。
+
+- `cancelPreviousPerformRequestsWithTarget:`
+- `cancelPreviousPerformRequestsWithTarget:selector:object:`
+
+如果通过`performSelector:withObject:afterDelay:`和`performSelector:withObject:afterDelay:inModes:`执行的selector可以通过这两个方法取消。
+
+
 ## Timer Source
 
+Timer用来执行一些定时任务，虽然它会生成一个time-based的通知，但它并不是一个实时的。timer在被注册后会自动根据注册的时间间隔设定事件，如果中间因为某些原因导致事件的执行被延迟，那么这个事件会被跳过。Tiemr有这个`tolerance`宽容度属性，可以接受一定的延迟，默认值为0。
+
+如果runloop没有运行，那么timer也不会激活。
 
 ## Run Loop Observer
 
-# Runloop的运行机制
-
-在输出
+``` C
+enum CFRunLoopActivity {
+   kCFRunLoopEntry = (1 << 0),
+   kCFRunLoopBeforeTimers = (1 << 1),
+   kCFRunLoopBeforeSources = (1 << 2),
+   kCFRunLoopBeforeWaiting = (1 << 5),
+   kCFRunLoopAfterWaiting = (1 << 6),
+   kCFRunLoopExit = (1 << 7),
+   kCFRunLoopAllActivities = 0x0FFFFFFFU 
+};
+typedef enum CFRunLoopActivity CFRunLoopActivity;
 ```
+注册通知
+``` OBjective-C
+CFRunLoopObserverContext  context = {0, (__bridge void *)(self), NULL, NULL, NULL};
+CFRunLoopObserverRef observer = CFRunLoopObserverCreate(kCFAllocatorDefault, kCFRunLoopEntry, YES, 0, &mainRunLoopObserver, &context);
+if (observer)
 {
-	current mode = UIInitializationRunLoopMode,
-	common modes = {
-		"UITrackingRunLoopMode",
-		"kCFRunLoopDefaultMode"
-	},
-	common mode items = {
-		CFRunLoopSource = {signalled = No, valid = Yes, order = -1, context = <CFRunLoopObserver context>{version = 0, callout = PurpleEventSignalCallback }},
-
-		CFRunLoopSource = {signalled = No, valid = Yes, order = 0, context = <CFRunLoopSource MIG Server> { port = 18955, subsystem = 0x10c29a9a0, context = 0x0}},
-
-		CFRunLoopSource ={signalled = Yes, valid = Yes, order = 0, context = <CFRunLoopSource context>{version = 0, callout = FBSSerialQueueRunLoopSourceHandler}},
-
-		CFRunLoopObserver = {valid = Yes, activities = 0xa0, repeats = Yes, order = 2000000, callout = _ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv},
-
-		CFRunLoopObserver = {valid = Yes, activities = 0xa0, repeats = Yes, order = 2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler, context = <CFArray>{type = mutable-small, count = 0, values = ()}}
-
-		9 : <CFRunLoopObserver>{valid = Yes, activities = 0x1, repeats = Yes, order = -2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler, context = <CFArray>{type = mutable-small, count = 0, values = ()}}
-
-		10 : <CFRunLoopObserver>{valid = Yes, activities = 0xa0, repeats = Yes, order = 2001000, callout = _afterCACommitHandler, context = <CFRunLoopObserver context 0x7fa9b9e01c40>}
-
-		12 : <CFRunLoopObserver>{valid = Yes, activities = 0xa0, repeats = Yes, order = 1999000, callout = _beforeCACommitHandler, context = <CFRunLoopObserver context 0x7fa9b9e01c40>}
-
-		13 : <CFRunLoopSource>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 1, info = 0x3903, callout = PurpleEventCallback}}
-
-		14 : <CFRunLoopObserver>{valid = Yes, activities = 0x20, repeats = Yes, order = 0, callout = _UIGestureRecognizerUpdateObserver (0x10b9346e1), context = <CFRunLoopObserver context 0x6000000c9b50>}
-
-		15 : <CFRunLoopSource>{signalled = No, valid = Yes, order = 0, context = <CFRunLoopSource MIG Server> {port = 23819, subsystem = 0x10c2b04d0, context = 0x600000038420}}
-
-		20 : <CFRunLoopSource>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 0, info = 0x600000116260, callout = __handleEventQueue}}
-
-		21 : <CFRunLoopSource>{signalled = No, valid = Yes, order = 0, context = <CFMachPort 0x600000144a40 [0x10b29ec70]>{valid = Yes, port = 1d03, source = 0x60000017c740, callout = _ZL20notify_port_callbackP12__CFMachPortPvlS1_, context = <CFMachPort context 0x0>}}
-
-		22 : <CFRunLoopSource>{signalled = No, valid = Yes, order = -2, context = <CFRunLoopSource context>{version = 0, info = 0x600000052c00, callout = __handleHIDEventFetcherDrain}}
-	},
-	modes = {
-		 : <CFRunLoopMode>{
-		name = UITrackingRunLoopMode, 
-		port set = 0x2303, 
-		queue = 0x60000017c980, 
-		source = 0x6000001d8240 (not fired), 
-		timer port = 0x2503, 
-		sources0 = {
-			0 : <CFRunLoopSource 0x60000017d100 [0x10b29ec70]>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 0, info = 0x0, callout = PurpleEventSignalCallback (0x10ed3a733)}}
-		1 : <CFRunLoopSource 0x60000017d880 [0x10b29ec70]>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 0, info = 0x600000116260, callout = __handleEventQueue (0x10bc0c508)}}
-		2 : <CFRunLoopSource 0x60000017d700 [0x10b29ec70]>{signalled = No, valid = Yes, order = -2, context = <CFRunLoopSource context>{version = 0, info = 0x600000052c00, callout = __handleHIDEventFetcherDrain (0x10bc0dbe5)}}
-		3 : <CFRunLoopSource 0x60800017dc40 [0x10b29ec70]>{signalled = Yes, valid = Yes, order = 0, context = <CFRunLoopSource context>{version = 0, info = 0x608000076380, callout = FBSSerialQueueRunLoopSourceHandler (0x10e54bdfc}}
-	},
-	sources1 = {
-		0 : <CFRunLoopSource 0x60800017cb00 [0x10b29ec70]>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 1, info = 0x3903, callout = PurpleEventCallback (0x10ed3cc30)}}
-		1 : <CFRunLoopSource 0x60000017c740 [0x10b29ec70]>{signalled = No, valid = Yes, order = 0, context = <CFMachPort 0x600000144a40 [0x10b29ec70]>{valid = Yes, port = 1d03, source = 0x60000017c740, callout = _ZL20notify_port_callbackP12__CFMachPortPvlS1_ (0x10fb47f79), context = <CFMachPort context 0x0>}}
-		5 : <CFRunLoopSource 0x60000017e000 [0x10b29ec70]>{signalled = No, valid = Yes, order = 0, context = <CFRunLoopSource MIG Server> {port = 23819, subsystem = 0x10c2b04d0, context = 0x600000038420}}
-		6 : <CFRunLoopSource 0x60000017d940 [0x10b29ec70]>{signalled = No, valid = Yes, order = 0, context = <CFRunLoopSource MIG Server> {port = 18955, subsystem = 0x10c29a9a0, context = 0x0}}
-	},
-	observers = (
-    	"<CFRunLoopObserver 0x60000013ae00 [0x10b29ec70]>{valid = Yes, activities = 0x1, repeats = Yes, order = -2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler (0x10b3fda9a), context = <CFArray 0x600000053710 [0x10b29ec70]>{type = mutable-small, count = 0, values = ()}}",
-    	"<CFRunLoopObserver 0x60000013aae0 [0x10b29ec70]>{valid = Yes, activities = 0x20, repeats = Yes, order = 0, callout = _UIGestureRecognizerUpdateObserver (0x10b9346e1), context = <CFRunLoopObserver context 0x6000000c9b50>}",
-    	"<CFRunLoopObserver 0x60000013ac20 [0x10b29ec70]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 1999000, callout = _beforeCACommitHandler (0x10b42f676), context = <CFRunLoopObserver context 0x7fa9b9e01c40>}",
-    	"<CFRunLoopObserver 0x60000013afe0 [0x10b29ec70]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 2000000, callout = _ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv (0x10fbeb012), context = <CFRunLoopObserver context 0x0>}",
-    	"<CFRunLoopObserver 0x60000013ad60 [0x10b29ec70]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 2001000, callout = _afterCACommitHandler (0x10b42f71e), context = <CFRunLoopObserver context 0x7fa9b9e01c40>}",
-    	"<CFRunLoopObserver 0x60000013aea0 [0x10b29ec70]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler (0x10b3fda9a), context = <CFArray 0x600000053710 [0x10b29ec70]>{type = mutable-small, count = 0, values = ()}}"
-	),
-	timers = (null),
-},
-
-	3 : <CFRunLoopMode 0x60000018c7e0 [0x10b29ec70]>{name = GSEventReceiveRunLoopMode, port set = 0x3003, queue = 0x60000017d1c0, source = 0x6000001d8420 (not fired), timer port = 0x3203, 
-	sources0 = <CFBasicHash 0x600000052ed0 [0x10b29ec70]>{type = mutable set, count = 1,
-entries =>
-	0 : <CFRunLoopSource 0x60000017d100 [0x10b29ec70]>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 0, info = 0x0, callout = PurpleEventSignalCallback (0x10ed3a733)}}
-	}
-,
-	sources1 = <CFBasicHash 0x600000052f00 [0x10b29ec70]>{type = mutable set, count = 1,
-entries =>
-	0 : <CFRunLoopSource 0x60800017cc80 [0x10b29ec70]>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 1, info = 0x3903, callout = PurpleEventCallback (0x10ed3cc30)}}
-}
-,
-	observers = (null),
-	timers = (null),
-	currently 502435236 (95658819009078) / soft deadline in: 1.84466484e+10 sec (@ -1) / hard deadline in: 1.84466484e+10 sec (@ -1)
-},
-
-	4 : <CFRunLoopMode 0x60000018c570 [0x10b29ec70]>{name = kCFRunLoopDefaultMode, port set = 0x1f03, queue = 0x60000017c800, source = 0x6000001d8060 (not fired), timer port = 0x2103, 
-	sources0 = <CFBasicHash 0x600000051d30 [0x10b29ec70]>{type = mutable set, count = 4,
-entries =>
-	0 : <CFRunLoopSource 0x60000017d100 [0x10b29ec70]>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 0, info = 0x0, callout = PurpleEventSignalCallback (0x10ed3a733)}}
-	1 : <CFRunLoopSource 0x60000017d880 [0x10b29ec70]>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 0, info = 0x600000116260, callout = __handleEventQueue (0x10bc0c508)}}
-	2 : <CFRunLoopSource 0x60000017d700 [0x10b29ec70]>{signalled = No, valid = Yes, order = -2, context = <CFRunLoopSource context>{version = 0, info = 0x600000052c00, callout = __handleHIDEventFetcherDrain (0x10bc0dbe5)}}
-	3 : <CFRunLoopSource 0x60800017dc40 [0x10b29ec70]>{signalled = Yes, valid = Yes, order = 0, context = <CFRunLoopSource context>{version = 0, info = 0x608000076380, callout = FBSSerialQueueRunLoopSourceHandler (0x10e54bdfc)}}
-}
-,
-	sources1 = <CFBasicHash 0x600000051d60 [0x10b29ec70]>{type = mutable set, count = 4,
-entries =>
-	0 : <CFRunLoopSource 0x60800017cb00 [0x10b29ec70]>{signalled = No, valid = Yes, order = -1, context = <CFRunLoopSource context>{version = 1, info = 0x3903, callout = PurpleEventCallback (0x10ed3cc30)}}
-	1 : <CFRunLoopSource 0x60000017c740 [0x10b29ec70]>{signalled = No, valid = Yes, order = 0, context = <CFMachPort 0x600000144a40 [0x10b29ec70]>{valid = Yes, port = 1d03, source = 0x60000017c740, callout = _ZL20notify_port_callbackP12__CFMachPortPvlS1_ (0x10fb47f79), context = <CFMachPort context 0x0>}}
-	5 : <CFRunLoopSource 0x60000017e000 [0x10b29ec70]>{signalled = No, valid = Yes, order = 0, context = <CFRunLoopSource MIG Server> {port = 23819, subsystem = 0x10c2b04d0, context = 0x600000038420}}
-	6 : <CFRunLoopSource 0x60000017d940 [0x10b29ec70]>{signalled = No, valid = Yes, order = 0, context = <CFRunLoopSource MIG Server> {port = 18955, subsystem = 0x10c29a9a0, context = 0x0}}
-}
-,
-	observers = (
-    "<CFRunLoopObserver 0x60000013ae00 [0x10b29ec70]>{valid = Yes, activities = 0x1, repeats = Yes, order = -2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler (0x10b3fda9a), context = <CFArray 0x600000053710 [0x10b29ec70]>{type = mutable-small, count = 0, values = ()}}",
-    "<CFRunLoopObserver 0x60000013aae0 [0x10b29ec70]>{valid = Yes, activities = 0x20, repeats = Yes, order = 0, callout = _UIGestureRecognizerUpdateObserver (0x10b9346e1), context = <CFRunLoopObserver context 0x6000000c9b50>}",
-    "<CFRunLoopObserver 0x60000013ac20 [0x10b29ec70]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 1999000, callout = _beforeCACommitHandler (0x10b42f676), context = <CFRunLoopObserver context 0x7fa9b9e01c40>}",
-    "<CFRunLoopObserver 0x60000013afe0 [0x10b29ec70]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 2000000, callout = _ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv (0x10fbeb012), context = <CFRunLoopObserver context 0x0>}",
-    "<CFRunLoopObserver 0x60000013ad60 [0x10b29ec70]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 2001000, callout = _afterCACommitHandler (0x10b42f71e), context = <CFRunLoopObserver context 0x7fa9b9e01c40>}",
-    "<CFRunLoopObserver 0x60000013aea0 [0x10b29ec70]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler (0x10b3fda9a), context = <CFArray 0x600000053710 [0x10b29ec70]>{type = mutable-small, count = 0, values = ()}}"
-),
-	timers = <CFArray 0x6000000a37e0 [0x10b29ec70]>{type = mutable-small, count = 1, values = (
-	0 : <CFRunLoopTimer 0x60000017d280 [0x10b29ec70]>{valid = Yes, firing = No, interval = 0, tolerance = 0, next fire date = 502435218 (-18.531627 @ 95640399418039), callout = (Delayed Perform) UIApplication _accessibilitySetUpQuickSpeak (0x10a587da7 / 0x10b8679ef) (/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/UIKit.framework/UIKit), context = <CFRunLoopTimer context 0x6000000710c0>}
-)},
-	currently 502435236 (95658819067861) / soft deadline in: 1.84467441e+10 sec (@ 95640399418039) / hard deadline in: 1.84467441e+10 sec (@ 95640399418039)
-},
-
-	5 : <CFRunLoopMode 0x60800018d000 [0x10b29ec70]>{name = UIInitializationRunLoopMode, port set = 0x4507, queue = 0x60800017dd00, source = 0x6080001d8150 (not fired), timer port = 0x4607, 
-	sources0 = <CFBasicHash 0x608000055b70 [0x10b29ec70]>{type = mutable set, count = 1,
-entries =>
-	2 : <CFRunLoopSource 0x60800017dc40 [0x10b29ec70]>{signalled = Yes, valid = Yes, order = 0, context = <CFRunLoopSource context>{version = 0, info = 0x608000076380, callout = FBSSerialQueueRunLoopSourceHandler (0x10e54bdfc)}}
-}
-,
-	sources1 = <CFBasicHash 0x608000055ba0 [0x10b29ec70]>{type = mutable set, count = 0,
-entries =>
-}
-,
-	observers = (
-    "<CFRunLoopObserver 0x60000013afe0 [0x10b29ec70]>{valid = Yes, activities = 0xa0, repeats = Yes, order = 2000000, callout = _ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv (0x10fbeb012), context = <CFRunLoopObserver context 0x0>}"
-),
-	timers = (null),
-	currently 502435237 (95658932002833) / soft deadline in: 1.84466484e+10 sec (@ -1) / hard deadline in: 1.84466484e+10 sec (@ -1)
-},
-
-	6 : <CFRunLoopMode 0x60000018ca50 [0x10b29ec70]>{name = kCFRunLoopCommonModes, port set = 0x5307, queue = 0x60000017db80, source = 0x6000001d86f0 (not fired), timer port = 0x5403, 
-	sources0 = (null),
-	sources1 = (null),
-	observers = (null),
-	timers = (null),
-	currently 502435237 (95658932144245) / soft deadline in: 1.84466484e+10 sec (@ -1) / hard deadline in: 1.84466484e+10 sec (@ -1)
-},
-
-}
+    CFRunLoopAddObserver(CFRunLoopGetMain(), observer, kCFRunLoopCommonModes);
 }
 ```
 
-# UI更新
+# Runloop的运行过程
 
+1. 通知观察者进入runloop(`kCFRunLoopEntry`)
+2. 通知观察者将要处理timer(`kCFRunLoopBeforeTimers`)
+3. 通知观察者将要处理非port-based(source0)的input sources的事件(`kCFRunLoopBeforeSources`)
+4. 处理source0的事件
+5. 如果port-based sources(source1)的事件ready，就处理这些事件并跳转到 9
+6. 通知观察者runloop将要休眠(`kCFRunLoopBeforeWaiting`)
+7. 如果发生以下事件就唤醒runloop
+	- port-based sources的事件到来
+	- timer
+	- runloop超时
+	- 手动被唤醒
+8. 通知观察者runloop被唤醒(`kCFRunLoopAfterWaiting`)
+9. 处理被挂起的事件
+	- 处理用户定义的timer，处理之后重启runloop并进入 2
+	- 如果有input sources事件，就发送该事件
+	- 如果runloop是被手动唤醒且没有超时，就重启runloop并进入 2
+10. 通知观察者runloop退出(`kCFRunLoopExit`)
+
+因为timer和input sources的通知是在真正执行事件之前，所以这两个时间之间会有间隔。如果觉得这个间隔很重要，可以通过`kCFRunLoopBeforeWaiting`和`kCFRunLoopAfterWaiting`这两个通知来关联与真正执行事件的时间。
+
+向runloop添加非port-base的input source也可以使runloop唤醒。
+
+Runloop的初始结构
+``` C
+{
+  current mode = UIInitializationRunLoopMode,
+  common modes = {
+    "UITrackingRunLoopMode",
+    "kCFRunLoopDefaultMode"
+  },
+  common mode items = {
+    //source0
+    CFRunLoopSource = {order = -1, {callout = PurpleEventSignalCallback}},
+    CFRunLoopSource = {order = 0, {callout = FBSSerialQueueRunLoopSourceHandler}},
+    CFRunLoopSource = {order = -2, {callout = __handleHIDEventFetcherDrain}},
+    CFRunLoopSource = {order = -1, {callout = __handleEventQueue}},
+    //source1
+    CFRunLoopSource = {order = 0, {port = 18955}},
+    CFRunLoopSource = {order = -1, {callout = PurpleEventCallback}},
+    CFRunLoopSource = {order = 0, {port = 1d03, callout = _ZL20notify_port_callbackP12__CFMachPortPvlS1_}},
+    CFRunLoopSource = {order = 0, {port = 23819}},
+    //observers
+    //0xa0 kCFRunLoopAfterWaiting | kCFRunLoopExit
+    //0x1 kCFRunLoopEntry
+    //0x20 kCFRunLoopBeforeWaiting
+    CFRunLoopObserver = {activities = 0xa0, order = 2000000, callout = _ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv},
+    CFRunLoopObserver = {activities = 0xa0, order = 2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler},
+    CFRunLoopObserver = {activities = 0x1, order = -2147483647, callout = _wrapRunLoopWithAutoreleasePoolHandler},
+    CFRunLoopObserver = {activities = 0xa0, order = 2001000, callout = _afterCACommitHandler},
+    CFRunLoopObserver = {activities = 0xa0, order = 1999000, callout = _beforeCACommitHandler},
+    CFRunLoopObserver = {activities = 0x20, order = 0, callout = _UIGestureRecognizerUpdateObserver},
+  },
+  modes = {
+    CFRunLoopMode = {
+      name = UITrackingRunLoopMode, 
+      sources0 = { /*同common mode items*/ },
+      sources1 = { /*同common mode items*/ },
+      observers = { /*同common mode items*/ },
+      timers = (null),
+    },
+
+    CFRunLoopMode = {
+      name = GSEventReceiveRunLoopMode, 
+      sources0 = {
+        CFRunLoopSource = {order = -1,{callout = PurpleEventSignalCallback}}
+      },
+      sources1 = {
+        CFRunLoopSource = {order = -1, {callout = PurpleEventCallback}}
+      },
+      observers = (null),
+      timers = (null),
+    },
+
+    CFRunLoopMode = {
+      name = kCFRunLoopDefaultMode, 
+      sources0 = { /*同common mode items*/ },
+      sources1 = { /*同common mode items*/ },
+      observers = { /*同common mode items*/ },
+      timers = {
+        CFRunLoopTimer = {callout = (Delayed Perform) UIApplication _accessibilitySetUpQuickSpeak}
+			},
+      },
+
+    CFRunLoopMode = {
+      name = UIInitializationRunLoopMode, 
+      sources0 = {
+        CFRunLoopSource = {callout = FBSSerialQueueRunLoopSourceHandler}
+      },
+      sources1 = {},
+      observers = {
+        CFRunLoopObserver = {activities = 0xa0, callout = _ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv}
+      },
+      timers = (null),
+    },
+
+    CFRunLoopMode = {
+      name = kCFRunLoopCommonModes, 
+      sources0 = (null),
+      sources1 = (null),
+      observers = (null),
+      timers = (null),
+     },
+  }
+}
+```
+
+# 动画与runloop的关系？
+
+从上边的runloop初始结构中可以看到有一个observe的回调为`_ZN2CA11Transaction17observer_callbackEP19__CFRunLoopObservermPv`，这个是Core Animation注册的observe，用于将UI的中间态提交到GPU，如果有动画，Core Animation会通过DisplayLink机制重复相关流程。
+所以，如果在动画代码的下边有一些会占用CPU的任务，这时候动画就会被阻塞。可以通过`runUntilDate`方法驱动runloop完成动画显示。
 
 <br/>
 参考资料：

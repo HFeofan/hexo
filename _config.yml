@@ -4,8 +4,8 @@
 
 # Site
 title: Feofan
-subtitle:
-description: 
+subtitle: 
+description: 种一棵树时间最好是十年前，但是现在开始种也不晚。种树中·····
 author: Feng Fanhua
 avatar: /images/avatar.png
 language: zh-Hans
@@ -72,3 +72,7 @@ deploy:
   type: git
   repo: git@github.com:hfeofan/hfeofan.github.io.git
   branch: master
+
+
+baidu_analytics: b73bb542103de34ce8d3e5944de10665
+disqus_shortname: feofan-me
