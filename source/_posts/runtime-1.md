@@ -1,6 +1,6 @@
 ---
 title: 运行时前篇——对象初始化设置分析
-date: 2016-12-06 10:22:38
+date: 2016-12-18 10:22:38
 tags: iOS
 ---
 
@@ -231,7 +231,7 @@ extern "C" __declspec(dllexport) struct _class_t OBJC_CLASS_$_XYTree __attribute
 从上边的代码可以看出`XYTree`以及它的`MetaClass`中`isa`和`superClass`的指向关系。下图[[图片来源]](http://www.sealiesoftware.com/blog/class%20diagram.pdf)可以更清楚的描述这点：
 ![Class Diagram](/images/runtime-1_classdiagram.png)
 
-### 继续查看class本身初始化涉及的其他信息
+### 相关联的初始化
 
 #### _OBJC_METACLASS_RO_$_XYTree
 ``` C
@@ -336,7 +336,7 @@ static struct _category_t _OBJC_$_CATEGORY_XYTree_$_XYTreeCategory __attribute__
 ```
 `struct _category_t`没有`ivars`字段，所以不能给category增加ivar。`struct _category_t`里有`class_methods`字段，但是没在main.cpp中看到类方法的信息。
 
-### 查看category初始化设置的其他信息
+### 相关联的初始化
 
 #### _OBJC_$_CATEGORY_INSTANCE_METHODS_XYTree_$_XYTreeCategory
 ``` C
@@ -367,7 +367,14 @@ static struct /*_prop_list_t*/ {
 ```
 
 # 类方法
-看到这里就留下了一个疑问，为什么没有看到类方法的相关信息。
+
+了解到上边的信息之后，产生一个疑问，为什么没有看到类方法的相关信息。看相关文章说类方法存在metaclass的methodlist里，但是看上边`_OBJC_METACLASS_RO_$_XYTree`的`baseMethods`并没有值。这里先留下个疑问。
+
+# category的加载
+
+对于category的加载可以看美团点评博客上的[深入理解Objective-C：Category](http://tech.meituan.com/DiveIntoCategory.html)，写的很详细。
+
+
 
 
 
