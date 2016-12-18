@@ -171,7 +171,7 @@ sidebar:
   #  - remove  Totally remove sidebar including sidebar toggler.
   #display: post
   #display: always
-  display: hide
+  display: post
   #display: remove
 
 
