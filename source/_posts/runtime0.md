@@ -19,6 +19,8 @@ NSInteger value = 2;
 ```
 需要注意的是，已经生成的`NSInvocation`对象的`methodSignature`不能更改，并且创建的时候使用`invocationWithMethodSignature`类方法创建。不能通过`alloc`和`init`的方式创建。生成的对象并不会retain设置的参数，需要手动通过`argumentsRetained`方法retain。
 
+<!--more-->
+
 ## 使用场景
 1. 将`NSInvocation`对象保存起来在将来使用。
 用《Head First设计模式》中的命令模式做个例子，实现一个只有开和关按钮的遥控器。
@@ -138,12 +140,47 @@ remoteControl.offSlot = light.offCommand;
 关于类型编码可以看[Type Encodings](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html)
 
 ## SEL
-通过`@selector()`编译指令可以得到一个类型为`SEL`的变量，
+通过`@selector()`编译指令可以得到一个类型为`SEL`的变量，那么`SEL`是什么样的结构呢？在`objc.h`中找到如下定义：
+``` C
+typedef struct objc_selector *SEL;
+```
+那么`struct objc_selector`是什么呢？在stackoverflow上查到，这个定义根据平台决定，在NeXT Objective-C Runtime中是一个C字符串。所以可以通过`NSLog(@"SEL = %s", @selector(blah));`打印。参见[stackoverflow](http://stackoverflow.com/questions/28581489/what-is-the-objc-selector-implementation)
 
 ## IMP
+同样地，在`objc.h`中也看到了`IMP`的定义
+``` C
+/// A pointer to the function of a method implementation. 
+#if !OBJC_OLD_DISPATCH_PROTOTYPES
+typedef void (*IMP)(void /* id, SEL, ... */ ); 
+#else
+typedef id (*IMP)(id, SEL, ...); 
+#endif
+```
+`IMP`指向一个方法的函数实现。
 
 ## Method
+根据苹果的开源代码[objc](https://opensource.apple.com/tarballs/objc4/)找到如下定义：
+``` C
+//objc-private.h
+typedef struct method_t *Method;
 
+//objc-runtime-new.h
+struct method_t {
+    SEL name;
+    const char *types;
+    IMP imp;
+
+    struct SortBySELAddress :
+        public std::binary_function<const method_t&,
+                                    const method_t&, bool>
+    {
+        bool operator() (const method_t& lhs,
+                         const method_t& rhs)
+        { return lhs.name < rhs.name; }
+    };
+};
+```
+这个和上篇文章中的`struct _objc_method`超不多。可以看到`Method`里包含了`SEL`和`IMP`，`types`字段是方法的编码，可以和上片文章里生成的方法对比一下`{{(struct objc_selector *)"doTask", "v16@0:8", (void *)_I_XYTree_doTask}`。结合上边的编码说明，可以了解这个`types`的内容。
 
 # 消息机制
 
