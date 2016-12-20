@@ -281,7 +281,7 @@ static struct /*_method_list_t*/ {
     {(struct objc_selector *)"setExName:", "v24@0:8@16", (void *)_I_XYTree_setExName_}}
 };
 ```
-看上边的基本结构里没有`struct _method_list_t`这个结构体的声明。在main.cpp中找到了直接使用改结构初始化的方法列表。可以看到，已经帮我们自动生成了属性的getter和setter方法。值得注意的是在示例代码中还声明了`doOtherTask`方法，没有实现它，这个结构里也没有出现这个方法。
+看上边的基本结构里没有`struct _method_list_t`这个结构体的声明。在main.cpp中找到了直接使用该结构初始化的方法列表。可以看到，已经帮我们自动生成了属性的getter和setter方法。值得注意的是在示例代码中还声明了`doOtherTask`方法，没有实现它，这个结构里也没有出现这个方法。
 
 在上述代码中也声明并实现了一个类方法`classMethodDoTask`,在`struct _class_ro_t`里并没有看到class method的存储位置，在main.cpp中也没有看到类方法的相关信息。
 
