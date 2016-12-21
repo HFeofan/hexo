@@ -9,7 +9,7 @@ tags: iOS
 这里需要借助`clang -rewrite-objc`这个命令，它可以把OC代码转成C/C++代码。
 
 示例代码：
-``` Objective-C
+```objectivec
 #import <Foundation/Foundation.h>
 #import <objc/runtime.h>
 
@@ -177,11 +177,11 @@ struct _category_t {
 对基本结构有了认识之后再来看看`XYTree`的初始化设置
 
 # XYTree的初始化
-``` C
+```C
 XYTree *object = ((XYTree *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("XYTree"), sel_registerName("new"));
 ```
 浏览生成的main.cpp，发现了两个inithook
-``` C
+```C
 __declspec(allocate(".objc_inithooks$B")) static void *OBJC_CLASS_SETUP[] = {
     (void *)&OBJC_CLASS_SETUP_$_XYTree,
 };
@@ -193,7 +193,7 @@ __declspec(allocate(".objc_inithooks$B")) static void *OBJC_CATEGORY_SETUP[] = {
 一个是class的setup，一个是category的setup。
 
 ## OBJC_CLASS_SETUP_$_XYTree
-``` C
+```C
 static void OBJC_CLASS_SETUP_$_XYTree(void ) {
     OBJC_METACLASS_$_XYTree.isa = &OBJC_METACLASS_$_NSObject;
     OBJC_METACLASS_$_XYTree.superclass = &OBJC_METACLASS_$_NSObject;
@@ -206,7 +206,7 @@ static void OBJC_CLASS_SETUP_$_XYTree(void ) {
 如上，设置了XYTree的metaclass和本身的`isa`、`superclass`、`cache`。
 
 ### OBJC_METACLASS_$_XYTree
-``` C
+```C
 extern "C" __declspec(dllexport) struct _class_t OBJC_METACLASS_$_XYTree __attribute__ ((used, section ("__DATA,__objc_data"))) = {
     0, // &OBJC_METACLASS_$_NSObject,
     0, // &OBJC_METACLASS_$_NSObject,
@@ -217,7 +217,7 @@ extern "C" __declspec(dllexport) struct _class_t OBJC_METACLASS_$_XYTree __attri
 ```
 
 ### OBJC_CLASS_$_XYTree
-``` C
+```C
 extern "C" __declspec(dllexport) struct _class_t OBJC_CLASS_$_XYTree __attribute__ ((used, section ("__DATA,__objc_data"))) = {
     0, // &OBJC_METACLASS_$_XYTree,
     0, // &OBJC_CLASS_$_NSObject,
@@ -250,7 +250,7 @@ static struct _class_ro_t _OBJC_METACLASS_RO_$_XYTree __attribute__ ((used, sect
 `XYTree`的metaclass的的`ro`没有什么特别的信息。
 
 #### _OBJC_CLASS_RO_$_XYTree
-``` C
+```C
 static struct _class_ro_t _OBJC_CLASS_RO_$_XYTree __attribute__ ((used, section ("__DATA,__objc_const"))) = {
     0, __OFFSETOFIVAR__(struct XYTree, _xyName), sizeof(struct XYTree_IMPL), 
     (unsigned int)0, 
@@ -286,7 +286,7 @@ static struct /*_method_list_t*/ {
 在上述代码中也声明并实现了一个类方法`classMethodDoTask`,在`struct _class_ro_t`里并没有看到class method的存储位置，在main.cpp中也没有看到类方法的相关信息。
 
 #### _OBJC_$_INSTANCE_VARIABLES_XYTree
-``` C
+```C
 static struct /*_ivar_list_t*/ {
     unsigned int entsize;  // sizeof(struct _prop_t)
     unsigned int count;
@@ -316,14 +316,14 @@ static struct /*_prop_list_t*/ {
 
 
 ## OBJC_CATEGORY_SETUP_$_XYTree_$_XYTreeCategory
-``` C
+```C
 static void OBJC_CATEGORY_SETUP_$_XYTree_$_XYTreeCategory(void ) {
     _OBJC_$_CATEGORY_XYTree_$_XYTreeCategory.cls = &OBJC_CLASS_$_XYTree;
 }
 ```
 
 ### _OBJC_$_CATEGORY_XYTree_$_XYTreeCategory
-``` C
+```C
 static struct _category_t _OBJC_$_CATEGORY_XYTree_$_XYTreeCategory __attribute__ ((used, section ("__DATA,__objc_const"))) = 
 {
     "XYTree",

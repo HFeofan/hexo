@@ -10,7 +10,7 @@ tags: iOS
 
 ## 用法
 
-``` Objective-C
+``` ObjectiveC
 NSMethodSignature *methodSignature = [self methodSignatureForSelector:@selector(doWork:)];
 NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
 invocation.selector = @selector(doWork:);
@@ -27,7 +27,7 @@ NSInteger value = 2;
 - 将`NSInvocation`对象保存起来在将来使用。
 用《Head First设计模式》中的命令模式做个例子，实现一个只有开和关按钮的遥控器。
 
-``` Objective-C
+``` ObjectiveC
 //灯
 @interface Light : NSObject
 - (void)open;

@@ -7,7 +7,7 @@ tags: iOS
 # 从动画说起
 
 在项目中会看到如下代码，动画结束之后，执行`NSRunloop`的`runUntilDate`方法。
-``` objective-c
+```objectivec
 NSRunLoop *currentLoop = [NSRunLoop currentRunLoop];
 NSTimeInterval durantion = 0.3;
 [UIView animateWithDuration:durantion animations:^{
@@ -110,7 +110,7 @@ Timer用来执行一些定时任务，虽然它会生成一个time-based的通�
 
 ## Run Loop Observer
 
-``` C
+```C
 enum CFRunLoopActivity {
    kCFRunLoopEntry = (1 << 0),
    kCFRunLoopBeforeTimers = (1 << 1),
@@ -123,7 +123,7 @@ enum CFRunLoopActivity {
 typedef enum CFRunLoopActivity CFRunLoopActivity;
 ```
 注册通知
-``` OBjective-C
+```OBjectiveC
 CFRunLoopObserverContext  context = {0, (__bridge void *)(self), NULL, NULL, NULL};
 CFRunLoopObserverRef observer = CFRunLoopObserverCreate(kCFAllocatorDefault, kCFRunLoopEntry, YES, 0, &mainRunLoopObserver, &context);
 if (observer)
@@ -157,7 +157,7 @@ if (observer)
 向runloop添加非port-base的input source也可以使runloop唤醒。
 
 Runloop的初始结构
-``` C
+```C
 {
   current mode = UIInitializationRunLoopMode,
   common modes = {
