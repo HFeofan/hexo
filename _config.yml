@@ -102,9 +102,5 @@ sidebar-about-description: "种一棵树时间最好是十年前，但是现在�
 sidebar-avatar: /images/avatar.png
 
 ## Other
-SEOTitle: Feofan's blog
 since: 2016
 post-default-img: /images/default_post.jpg
-archive:
-    title: archives
-    description: 可以根据归档日期检索所有文件
