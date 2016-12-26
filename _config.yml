@@ -8,8 +8,9 @@ subtitle:
 description: 种一棵树时间最好是十年前，但是现在开始种也不晚。种树中·····
 author: Feofan
 avatar: /images/avatar.png
-language: zh-Hans
+language: zh-CN
 timezone:
+favicon: favicon.ico
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
@@ -64,7 +65,16 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: next
+theme: Anisina
+
+markdown:
+  plugins:
+    - markdown-it-abbr
+    - markdown-it-footnote
+    - markdown-it-ins
+    - markdown-it-sub
+    - markdown-it-sup
+    - markdown-it-emoji
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
@@ -74,5 +84,27 @@ deploy:
   branch: master
 
 
+# Theme next
 baidu_analytics: b73bb542103de34ce8d3e5944de10665
 disqus_shortname: feofan-me
+
+# Theme Anisina
+
+## User Settings
+ba_track_id: b73bb542103de34ce8d3e5944de10665
+disqus_username: feofan-me
+github_username: feofanfeng
+
+
+## Side Bar
+sidebar: true
+sidebar-about-description: "种一棵树时间最好是十年前，但是现在开始种也不晚。种树中·····"
+sidebar-avatar: /images/avatar.png
+
+## Other
+SEOTitle: Feofan's blog
+since: 2016
+post-default-img: /images/default_post.jpg
+archive:
+    title: archives
+    description: 可以根据归档日期检索所有文件
