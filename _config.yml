@@ -80,7 +80,7 @@ markdown:
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: git@github.com:feofanfeng/feofanfeng.github.io.git
+  repo: git@github.com:feofancode/feofancode.github.io.git
   branch: master
 
 
