@@ -821,6 +821,7 @@ img::-moz-selection {
 .listing-seperator {
     color: #0085a1;
     font-size: 21px !important;
+    margin-top: 20px;
 }
 
 .listing-seperator::before {
