@@ -366,10 +366,22 @@ article blockquote footer{
 .intro-header {
     background-position: center;
     background-repeat: no-repeat;
-    background-color: #808080;
+    background-color: #010101;
     background-attachment: scroll;
     background-size: cover;
     height: 300px;
+    display: table;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.tag-header {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #ffffff;
+    background-attachment: scroll;
+    background-size: cover;
+    height: 55px;
     display: table;
     width: 100%;
     margin-bottom: 20px;
