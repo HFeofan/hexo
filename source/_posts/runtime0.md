@@ -296,7 +296,7 @@ IMP class_swizzleSelector(Class clazz, SEL selector, id newImplementationBlock)
 }
 ```
 
-通过swizzledSelector去交换方法需要注意不要和其他库或者其他人写的代码方法名重复，要不然会出现期望外的结构。而使用swizzledIMP交换的话没有这种问题。
+通过swizzledSelector去交换方法需要注意不要和其他库或者其他人写的代码方法名重复，要不然会出现期望外的结果。而使用swizzledIMP交换的话没有这种问题。
 
 
 # 参考
