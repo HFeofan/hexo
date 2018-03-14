@@ -1,7 +1,7 @@
 ---
 title: JavaScript笔记——创建对象
 date: 2018-03-11 11:52:57
-tags:
+tags: JavaScript
 ---
 
 
