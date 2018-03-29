@@ -107,3 +107,6 @@ class Snake extends Animal
 ```
 
 这里不一样地方就是函数的重载，参数与父类中参数个数不一致也会当做函数重载，而且super的用法和ES6也不一样，可以直接用super当做父类中方法，和ruby调用父类方法一样。
+
+
+备注：JavaScript笔记系列的资料来自《JavaScript高级程序设计》、[ECMAScript 6 入门](http://es6.ruanyifeng.com/)、[TypeScript中文文档](https://www.tslang.cn/docs/home.html)和[CoffeeScript官方文档](http://coffeescript.org/)。

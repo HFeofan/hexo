@@ -210,3 +210,6 @@ Animal = class Animal {
 ```
 
 写法和ruby类似，以缩进为依据判断代码块。
+
+
+备注：JavaScript笔记系列的资料来自《JavaScript高级程序设计》、[ECMAScript 6 入门](http://es6.ruanyifeng.com/)、[TypeScript中文文档](https://www.tslang.cn/docs/home.html)和[CoffeeScript官方文档](http://coffeescript.org/)。
