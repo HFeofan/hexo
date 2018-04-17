@@ -24,7 +24,7 @@ tags: JavaScript
 
 1， HTML事件处理程序
 
-```javascript
+```html
 //事件的函数直接在双引号中实现
 <input type="button" value="click me" onclick="alert('clicked')" />
   
@@ -50,7 +50,7 @@ btn.onclick = function() {
 
 3， DOM2级事件处理程序
 
-“DOM2级事件”定义了两个操作事件的方法，addEventListener()和removeEventListener()。这两个方法都接受三个参数：事件名，函数，bool值。bool值为true表示在捕获阶段调用事件处理程序。false表示在事件冒泡阶段调用事件处理程序。remove的函数必须和add时的函数为同一个，所以如果add时使用的匿名函数就无法移除。
+“DOM2级事件”定义了两个操作事件的方法，addEventListener()和removeEventListener()。这两个方法都接受三个参数：事件名，函数，bool值。bool值为true表示在捕获阶段调用事件处理程序。false表示在事件冒泡阶段调用事件处理程序。remove的函数必须和add时的函数为同一个，所以如果add时使用的是匿名函数就无法移除。
 
 ```javascript
  var btn = document.getElementById("myBtn");
